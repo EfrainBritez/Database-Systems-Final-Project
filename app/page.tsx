@@ -13,13 +13,13 @@ async function getProducts(sort: SortOption = "name-asc"): Promise<Product[]> {
   const supabase = await createClient()
   
   let query = supabase
-    .from("products")
+    .from("product")
     .select(`
-      *,
-      categories (*),
-      product_tags (
-        tags (*)
-      )
+      product_id,
+      product_name,
+      description,
+      photo_url,
+      price
     `)
   
   // Apply sorting
@@ -31,10 +31,10 @@ async function getProducts(sort: SortOption = "name-asc"): Promise<Product[]> {
       query = query.order("price", { ascending: false })
       break
     case "name-asc":
-      query = query.order("name", { ascending: true })
+      query = query.order("product_name", { ascending: true })
       break
     case "name-desc":
-      query = query.order("name", { ascending: false })
+      query = query.order("product_name", { ascending: false })
       break
   }
   
@@ -51,7 +51,7 @@ async function getProducts(sort: SortOption = "name-asc"): Promise<Product[]> {
 export default async function CatalogPage({ searchParams }: PageProps) {
   const params = await searchParams
   const sort = params.sort || "name-asc"
-  const products = await getProducts(sort)
+  const product = await getProducts(sort)
   
   return (
     <div className="min-h-screen bg-background">
@@ -61,14 +61,14 @@ export default async function CatalogPage({ searchParams }: PageProps) {
           <div>
             <h1 className="text-3xl font-bold">Product Catalog</h1>
             <p className="text-muted-foreground mt-1">
-              Browse our collection of {products.length} products
+              Browse our collection of {product.length} products
             </p>
           </div>
           <Suspense fallback={<div className="h-10 w-[180px] bg-muted animate-pulse rounded-md" />}>
             <SortControls />
           </Suspense>
         </div>
-        <ProductGrid products={products} />
+        <ProductGrid products={product} />
       </main>
     </div>
   )
