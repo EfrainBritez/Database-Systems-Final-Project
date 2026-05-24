@@ -8,9 +8,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { createProduct } from "@/app/admin/actions"
 
-interface ProductFormProps {}
-
-export function ProductForm({}: ProductFormProps) {
+export function ProductForm() {
   const [isPending, startTransition] = useTransition()
 
   async function handleSubmit(formData: FormData) {
@@ -60,6 +58,16 @@ export function ProductForm({}: ProductFormProps) {
             min="0"
             required
             placeholder="0"
+          />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="photo">Product Image</FieldLabel>
+          <Input
+            id="photo"
+            name="photo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
           />
         </Field>
 

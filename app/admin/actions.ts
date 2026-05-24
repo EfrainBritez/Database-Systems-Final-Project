@@ -3,6 +3,52 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
+const PRODUCT_IMAGES_BUCKET = "product-images"
+
+function slugifyFileName(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "product"
+}
+
+function getImageExtension(file: File) {
+  const fileNameExtension = file.name.split(".").pop()?.toLowerCase()
+
+  if (fileNameExtension) {
+    return fileNameExtension
+  }
+
+  return file.type.split("/").pop() || "jpg"
+}
+
+async function uploadProductImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  file: File,
+  productName: string,
+) {
+  const extension = getImageExtension(file)
+  const filePath = `products/${slugifyFileName(productName)}-${Date.now()}.${extension}`
+
+  const { error } = await supabase.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      contentType: file.type || undefined,
+      upsert: false,
+    })
+
+  if (error) {
+    return { error: error.message, publicUrl: null, filePath: null }
+  }
+
+  const { data } = supabase.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .getPublicUrl(filePath)
+
+  return { error: null, publicUrl: data.publicUrl, filePath }
+}
+
 /**
  * Create a new product
  * Maps form data to the correct database schema
@@ -13,25 +59,43 @@ export async function createProduct(formData: FormData) {
   const productName = formData.get("product_name") as string
   const description = formData.get("description") as string
   const price = parseFloat(formData.get("price") as string)
-  const photoUrl = formData.get("photo_url") as string
+  const image = formData.get("photo")
+  const pastedPhotoUrl = formData.get("photo_url") as string
 
-  if (!productName || !price) {
+  if (!productName || Number.isNaN(price)) {
     return { error: "Product name and price are required" }
   }
 
-  // Insert the product
+  let photoUrl = pastedPhotoUrl || null
+  let uploadedFilePath: string | null = null
+
+  if (image instanceof File && image.size > 0) {
+    const uploadResult = await uploadProductImage(supabase, image, productName)
+
+    if (uploadResult.error) {
+      return { error: uploadResult.error }
+    }
+
+    photoUrl = uploadResult.publicUrl || null
+    uploadedFilePath = uploadResult.filePath || null
+  }
+
   const { data: product, error: productError } = await supabase
     .from("product")
     .insert({
       product_name: productName,
       description: description || null,
       price: Math.round(price), // price is smallint in DB
-      photo_url: photoUrl || null,
+      photo_url: photoUrl,
     })
     .select()
     .single()
 
   if (productError) {
+    if (uploadedFilePath) {
+      await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove([uploadedFilePath])
+    }
+
     return { error: productError.message }
   }
 

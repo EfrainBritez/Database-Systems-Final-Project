@@ -43,6 +43,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[72px]">Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Description</TableHead>
@@ -52,6 +53,19 @@ export function ProductsTable({ products }: ProductsTableProps) {
         <TableBody>
           {products.map(product => (
             <TableRow key={product.product_id}>
+              <TableCell>
+                <div className="size-12 overflow-hidden rounded-md bg-muted flex items-center justify-center">
+                  {product.photo_url ? (
+                    <img
+                      src={product.photo_url}
+                      alt={product.product_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">None</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="font-medium">{product.product_name}</TableCell>
               <TableCell>${product.price.toFixed(2)}</TableCell>
               <TableCell className="text-sm text-muted-foreground line-clamp-2">
