@@ -224,3 +224,24 @@ export async function linkProductSupplier(
 
   return { success: true, data }
 }
+
+/**
+ * Delete a supplier
+ */
+export async function deleteSupplier(supplierId: number) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("supplier")
+    .delete()
+    .eq("suplier_id", supplierId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath("/admin")
+  revalidatePath("/suppliers")
+
+  return { success: true }
+}

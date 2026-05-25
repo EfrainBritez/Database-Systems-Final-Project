@@ -6,14 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ProductForm } from "@/components/admin/product-form"
 import { CategoryForm } from "@/components/admin/category-form"
 import { TagForm } from "@/components/admin/tag-form"
+import { SupplierForm } from "@/components/admin/supplier-form"
 import { ProductsTable } from "@/components/admin/products-table"
-import type { Product } from "@/lib/types"
+import { SuppliersTable } from "@/components/admin/suppliers-table"
+import type { Product, Supplier } from "@/lib/types"
 
 async function getData() {
   const supabase = await createClient()
 
   // Fetch all products from the database
-  const { data: products, error } = await supabase
+  const { data: products, error: productsError } = await supabase
     .from("product")
     .select(
       `
@@ -26,29 +28,50 @@ async function getData() {
     )
     .order("product_name", { ascending: true })
 
-  if (error) {
-    console.error("Error fetching products:", error)
-    return {
-      products: [] as Product[],
-    }
+  // Fetch all suppliers from the database
+  const { data: suppliers, error: suppliersError } = await supabase
+    .from("supplier")
+    .select(
+      `
+      suplier_id,
+      supplier_name,
+      contact_name,
+      supplier_email,
+      supplier_phone
+    `
+    )
+    .order("supplier_name", { ascending: true })
+
+  if (productsError) {
+    console.error("Error fetching products:", productsError)
+  }
+
+  if (suppliersError) {
+    console.error("Error fetching suppliers:", suppliersError)
   }
 
   return {
     products: (products || []) as Product[],
+    suppliers: (suppliers || []) as Supplier[],
   }
 }
 
 export default async function AdminPage() {
-  const { products } = await getData()
+  const { products, suppliers } = await getData()
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
-          <Button asChild variant="outline">
-            <Link href="/">Back to Store</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/suppliers">View Suppliers</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/">Back to Store</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -56,6 +79,7 @@ export default async function AdminPage() {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
           </TabsList>
@@ -78,6 +102,28 @@ export default async function AdminPage() {
               </CardHeader>
               <CardContent>
                 <ProductsTable products={products} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="suppliers" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Supplier</CardTitle>
+                <CardDescription>Add a new supplier to your network.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SupplierForm />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>All Suppliers ({suppliers.length})</CardTitle>
+                <CardDescription>Manage your existing suppliers.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SuppliersTable suppliers={suppliers} />
               </CardContent>
             </Card>
           </TabsContent>
