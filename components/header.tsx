@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { CartButton } from "@/components/cart-button"
 
 export function Header() {
   return (
@@ -8,7 +9,8 @@ export function Header() {
         <Link href="/" className="text-xl font-bold">
           ShopSimple
         </Link>
-        <nav>
+        <nav className="flex items-center gap-4">
+          <CartButton />
           <Button asChild variant="outline">
             <Link href="/admin">Admin Dashboard</Link>
           </Button>

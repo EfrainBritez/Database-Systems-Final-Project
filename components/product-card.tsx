@@ -1,11 +1,25 @@
+'use client'
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { useCart } from "@/lib/cart-context"
 import type { Product } from "@/lib/types"
+import { ShoppingCart } from 'lucide-react'
+import { useState } from "react"
 
 interface ProductCardProps {
   product: Product
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { addItem } = useCart()
+  const [isAdded, setIsAdded] = useState(false)
+
+  const handleAddToCart = () => {
+    addItem(product, 1)
+    setIsAdded(true)
+    setTimeout(() => setIsAdded(false), 2000)
+  }
+
   return (
     <Card className="flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="p-0">
@@ -33,6 +47,17 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.description}
           </p>
         )}
+        <button
+          onClick={handleAddToCart}
+          className={`mt-4 w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-all ${
+            isAdded
+              ? 'bg-green-500 text-white'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          }`}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          {isAdded ? 'Added to Cart!' : 'Add to Cart'}
+        </button>
       </CardContent>
     </Card>
   )
