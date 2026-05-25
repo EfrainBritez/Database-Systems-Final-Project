@@ -122,6 +122,35 @@ export async function searchProducts(
  */
 
 /**
+ * Get all inventory items with product information
+ * @returns Array of inventory items with product details
+ */
+export async function getAllInventory() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('inventory')
+    .select(
+      `
+      inventory_id,
+      product_id,
+      quantity,
+      reorder_level,
+      last_update,
+      product:product_id (product_id, product_name, price)
+      `
+    )
+    .order('product_id', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching all inventory:', error.message)
+    return []
+  }
+
+  return data || []
+}
+
+/**
  * Get inventory information for a product
  * @param productId - Product ID
  * @returns Inventory data or null

@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ProductForm } from "@/components/admin/product-form"
-import { CategoryForm } from "@/components/admin/category-form"
-import { TagForm } from "@/components/admin/tag-form"
 import { SupplierForm } from "@/components/admin/supplier-form"
 import { ProductsTable } from "@/components/admin/products-table"
 import { SuppliersTable } from "@/components/admin/suppliers-table"
@@ -66,6 +64,9 @@ export default async function AdminPage() {
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
           <div className="flex gap-2">
             <Button asChild variant="outline">
+              <Link href="/admin/inventory">Inventory</Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/suppliers">View Suppliers</Link>
             </Button>
             <Button asChild variant="outline">
@@ -80,8 +81,6 @@ export default async function AdminPage() {
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="tags">Tags</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="space-y-6">
@@ -124,30 +123,6 @@ export default async function AdminPage() {
               </CardHeader>
               <CardContent>
                 <SuppliersTable suppliers={suppliers} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="categories" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Categories</CardTitle>
-                <CardDescription>Categories are not available in the current database schema.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CategoryForm />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="tags" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-                <CardDescription>Tags are not available in the current database schema.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TagForm />
               </CardContent>
             </Card>
           </TabsContent>
