@@ -7,33 +7,40 @@ import { ProductForm } from "@/components/admin/product-form"
 import { CategoryForm } from "@/components/admin/category-form"
 import { TagForm } from "@/components/admin/tag-form"
 import { ProductsTable } from "@/components/admin/products-table"
-import type { Category, Tag, Product } from "@/lib/types"
+import type { Product } from "@/lib/types"
 
 async function getData() {
   const supabase = await createClient()
-  
-  const [categoriesRes, tagsRes, productsRes] = await Promise.all([
-    supabase.from("categories").select("*").order("name"),
-    supabase.from("tags").select("*").order("name"),
-    supabase.from("products").select(`
-      *,
-      categories (*),
-      product_tags (
-        tags (*)
-      )
-    `).order("created_at", { ascending: false }),
-  ])
-  
+
+  // Fetch all products from the database
+  const { data: products, error } = await supabase
+    .from("product")
+    .select(
+      `
+      product_id,
+      product_name,
+      description,
+      photo_url,
+      price
+    `
+    )
+    .order("product_name", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching products:", error)
+    return {
+      products: [] as Product[],
+    }
+  }
+
   return {
-    categories: (categoriesRes.data || []) as Category[],
-    tags: (tagsRes.data || []) as Tag[],
-    products: (productsRes.data || []) as Product[],
+    products: (products || []) as Product[],
   }
 }
 
 export default async function AdminPage() {
-  const { categories, tags, products } = await getData()
-  
+  const { products } = await getData()
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background">
@@ -44,7 +51,7 @@ export default async function AdminPage() {
           </Button>
         </div>
       </header>
-      
+
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
@@ -52,7 +59,7 @@ export default async function AdminPage() {
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="products" className="space-y-6">
             <Card>
               <CardHeader>
@@ -60,10 +67,10 @@ export default async function AdminPage() {
                 <CardDescription>Create a new product to add to your catalog.</CardDescription>
               </CardHeader>
               <CardContent>
-                <ProductForm categories={categories} tags={tags} />
+                <ProductForm />
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>All Products ({products.length})</CardTitle>
@@ -74,68 +81,27 @@ export default async function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="categories" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Add New Category</CardTitle>
-                <CardDescription>Create categories to organize your products.</CardDescription>
+                <CardTitle>Categories</CardTitle>
+                <CardDescription>Categories are not available in the current database schema.</CardDescription>
               </CardHeader>
               <CardContent>
                 <CategoryForm />
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Categories ({categories.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {categories.length > 0 ? (
-                  <ul className="space-y-2">
-                    {categories.map(category => (
-                      <li key={category.id} className="flex items-center gap-2 p-2 border rounded-md">
-                        <span className="font-medium">{category.name}</span>
-                        {category.description && (
-                          <span className="text-muted-foreground text-sm">- {category.description}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground">No categories yet.</p>
-                )}
-              </CardContent>
-            </Card>
           </TabsContent>
-          
+
           <TabsContent value="tags" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Add New Tag</CardTitle>
-                <CardDescription>Create tags to label your products.</CardDescription>
+                <CardTitle>Tags</CardTitle>
+                <CardDescription>Tags are not available in the current database schema.</CardDescription>
               </CardHeader>
               <CardContent>
                 <TagForm />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Tags ({tags.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tags.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                      <span key={tag.id} className="px-3 py-1 border rounded-full text-sm">
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No tags yet.</p>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
