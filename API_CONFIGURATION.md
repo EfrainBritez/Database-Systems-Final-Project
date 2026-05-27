@@ -33,7 +33,7 @@ These variables are used by the Supabase client to authenticate with your Postgr
    - `customer_phone`: Phone number (nullable)
    - `street`: Street address (nullable)
    - `city`: City (nullable)
-   - `phone`: Phone (nullable)
+   - `isAdmin`: Check admin access (nullable)
 
 3. **order** - Orders
    - `order_id` (PK): Unique order identifier

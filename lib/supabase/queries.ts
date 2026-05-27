@@ -14,7 +14,12 @@ import type {
   Inventory,
   Supplier,
   ProductSupplier,
-  StockMovement
+  StockMovement,
+  CustomerNew,
+  OrderNew,
+  OrderItemNew,
+  PaymentNew,
+  OrderWithDetails
 } from '@/lib/types'
 
 /**
@@ -337,4 +342,200 @@ export async function getProductSuppliers(productId: number) {
   }
 
   return data
+}
+
+/**
+ * NEW QUERIES - UUID-based customers, orders, and payments
+ */
+
+/**
+ * Get all orders with customer details
+ * @param limit - Maximum number of orders to fetch
+ * @param offset - Offset for pagination
+ * @returns Array of orders with customer details
+ */
+export async function getAllOrders(limit: number = 50, offset: number = 0): Promise<OrderWithDetails[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `
+      id,
+      customer_id,
+      order_number,
+      status,
+      total_amount,
+      payment_status,
+      payment_method,
+      payment_gateway_id,
+      notes,
+      created_at,
+      updated_at,
+      customer:customer_id (
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        street_address,
+        city,
+        state,
+        zip_code,
+        country,
+        created_at,
+        updated_at
+      ),
+      order_items (
+        id,
+        order_id,
+        product_id,
+        quantity,
+        price,
+        created_at
+      )
+      `
+    )
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) {
+    console.error('Error fetching orders:', error.message)
+    return []
+  }
+
+  return (data as any[]).map((order) => ({
+    ...order,
+    customer: order.customer,
+    items: order.order_items,
+  })) || []
+}
+
+/**
+ * Get order by ID with full details
+ * @param orderId - Order ID
+ * @returns Order with details or null
+ */
+export async function getOrderById(orderId: string): Promise<OrderWithDetails | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `
+      id,
+      customer_id,
+      order_number,
+      status,
+      total_amount,
+      payment_status,
+      payment_method,
+      payment_gateway_id,
+      notes,
+      created_at,
+      updated_at,
+      customer:customer_id (
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        street_address,
+        city,
+        state,
+        zip_code,
+        country,
+        created_at,
+        updated_at
+      ),
+      order_items (
+        id,
+        order_id,
+        product_id,
+        quantity,
+        price,
+        created_at
+      )
+      `
+    )
+    .eq('id', orderId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching order:', error.message)
+    return null
+  }
+
+  return {
+    ...data,
+    customer: data.customer as any,
+    items: data.order_items as any,
+  } as OrderWithDetails
+}
+
+/**
+ * Get customer by email
+ * @param email - Customer email
+ * @returns Customer or null
+ */
+export async function getCustomerByEmailNew(email: string): Promise<CustomerNew | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    console.error('Error fetching customer:', error.message)
+    return null
+  }
+
+  return data as CustomerNew
+}
+
+/**
+ * Get customer by ID
+ * @param customerId - Customer ID
+ * @returns Customer or null
+ */
+export async function getCustomerByIdNew(customerId: string): Promise<CustomerNew | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('id', customerId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching customer:', error.message)
+    return null
+  }
+
+  return data as CustomerNew
+}
+
+/**
+ * Get all payments for an order
+ * @param orderId - Order ID
+ * @returns Array of payments
+ */
+export async function getOrderPayments(orderId: string): Promise<PaymentNew[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching payments:', error.message)
+    return []
+  }
+
+  return (data as PaymentNew[]) || []
 }

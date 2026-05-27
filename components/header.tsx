@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CartButton } from "@/components/cart-button"
+import { AuthButtons } from "@/components/auth-buttons"
 
 export function Header() {
   return (
@@ -14,6 +15,7 @@ export function Header() {
           <Button asChild variant="outline">
             <Link href="/admin">Admin Dashboard</Link>
           </Button>
+          <AuthButtons />
         </nav>
       </div>
     </header>
