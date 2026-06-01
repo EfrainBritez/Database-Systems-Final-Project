@@ -14,6 +14,8 @@ export async function createProduct(formData: FormData) {
   const description = formData.get("description") as string
   const price = parseFloat(formData.get("price") as string)
   const photoUrl = formData.get("photo_url") as string
+  const quantityRaw = formData.get("quantity") as string | null
+  const reorderLevelRaw = formData.get("reorder_level") as string | null
 
   if (!productName || !price) {
     return { error: "Product name and price are required" }
@@ -33,6 +35,17 @@ export async function createProduct(formData: FormData) {
 
   if (productError) {
     return { error: productError.message }
+  }
+
+  // If quantity provided, add initial inventory row linked to the new product
+  const quantity = quantityRaw ? parseInt(quantityRaw, 10) : null
+  const reorderLevel = reorderLevelRaw ? parseInt(reorderLevelRaw, 10) : null
+
+  if (quantity !== null && !Number.isNaN(quantity)) {
+    const invResult = await addInventory(product.product_id, quantity, reorderLevel || undefined)
+    if (invResult.error) {
+      return { error: invResult.error }
+    }
   }
 
   revalidatePath("/")
@@ -84,6 +97,38 @@ export async function updateProduct(productId: number, formData: FormData) {
 export async function deleteProduct(productId: number) {
   const supabase = await createClient()
 
+  // Cascade-delete related rows to mimic ON DELETE CASCADE behavior
+  // Delete order items referencing this product (if any)
+  const { error: orderItemsError } = await supabase
+    .from("order_item")
+    .delete()
+    .eq("product_id", productId)
+
+  if (orderItemsError) {
+    return { error: orderItemsError.message }
+  }
+
+  // Delete product-supplier links
+  const { error: psError } = await supabase
+    .from("product_supplier")
+    .delete()
+    .eq("product_id", productId)
+
+  if (psError) {
+    return { error: psError.message }
+  }
+
+  // Delete inventory rows for this product
+  const { error: invError } = await supabase
+    .from("inventory")
+    .delete()
+    .eq("product_id", productId)
+
+  if (invError) {
+    return { error: invError.message }
+  }
+
+  // Finally delete the product itself
   const { error } = await supabase
     .from("product")
     .delete()

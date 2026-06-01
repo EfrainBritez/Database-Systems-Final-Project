@@ -16,3 +16,4 @@ node_modules
 .DS_Store
 
 pnpm-workspace.yaml
+CHEAT_SHEET.md
