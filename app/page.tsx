@@ -25,10 +25,11 @@ async function getProducts(
       product_name,
       description,
       photo_url,
-      price
+      price,
+      is_active
     `,
     { count: "exact" }
-  )
+  ).eq("is_active", true)
 
   // Apply sorting
   switch (sort) {
