@@ -5,6 +5,7 @@ export interface Product {
   description: string | null
   photo_url: string | null
   price: number
+  is_active?: boolean | null
 }
 
 // Product with supplier information
@@ -111,6 +112,8 @@ export interface PaginatedResponse<T> {
 }
 
 export type SortOption = 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+export type PaymentStatus = 'unpaid' | 'paid' | 'failed'
 
 // New Customer type (UUID-based)
 export interface CustomerNew {
@@ -133,9 +136,9 @@ export interface OrderNew {
   id: string
   customer_id: string
   order_number: string
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  status: OrderStatus
   total_amount: number
-  payment_status: 'unpaid' | 'paid' | 'failed'
+  payment_status: PaymentStatus
   payment_method?: string
   payment_gateway_id?: string
   notes?: string

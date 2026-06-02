@@ -22,7 +22,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
   const [isPending, startTransition] = useTransition()
   
   function handleDelete(productId: number, productName: string) {
-    if (!confirm(`Are you sure you want to delete "${productName}"?`)) {
+    if (!confirm(`Archive "${productName}"? It will be hidden from the catalog and admin lists.`)) {
       return
     }
 
@@ -78,7 +78,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                   onClick={() => handleDelete(product.product_id, product.product_name)}
                   disabled={isPending}
                 >
-                  {isPending ? <Spinner /> : "Delete"}
+                  {isPending ? <Spinner /> : "Archive"}
                 </Button>
               </TableCell>
             </TableRow>

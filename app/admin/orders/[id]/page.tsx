@@ -7,8 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import type { OrderWithDetails } from '@/lib/types'
+import type { OrderStatus, OrderWithDetails } from '@/lib/types'
 import { updateOrderStatus } from '@/app/admin/order-actions'
+
+const ORDER_STATUSES: OrderStatus[] = [
+  'pending',
+  'confirmed',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+]
 
 interface OrderDetailsPageProps {
   params: {
@@ -45,7 +54,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
     fetchOrder()
   }, [params.id])
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order) return
 
     try {
@@ -246,7 +255,7 @@ export default function OrderDetailsPage({ params }: OrderDetailsPageProps) {
               <CardTitle>Update Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(
+              {ORDER_STATUSES.map(
                 (status) => (
                   <Button
                     key={status}

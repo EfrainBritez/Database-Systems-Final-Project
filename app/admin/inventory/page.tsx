@@ -10,7 +10,24 @@ interface InventoryWithProduct extends Inventory {
     product_id: number
     product_name: string
     price: number
+    is_active?: boolean | null
   }
+}
+
+type InventoryQueryRow = Omit<InventoryWithProduct, "product"> & {
+  product?:
+    | {
+        product_id: number
+        product_name: string
+        price: number
+        is_active?: boolean | null
+      }
+    | {
+        product_id: number
+        product_name: string
+        price: number
+        is_active?: boolean | null
+      }[]
 }
 
 async function getInventoryData() {
@@ -25,9 +42,10 @@ async function getInventoryData() {
       quantity,
       reorder_level,
       last_update,
-      product:product_id (product_id, product_name, price)
+      product:product_id!inner (product_id, product_name, price, is_active)
     `
     )
+    .eq("product.is_active", true)
     .order("product_id", { ascending: true })
 
   if (error) {
@@ -35,7 +53,10 @@ async function getInventoryData() {
     return []
   }
 
-  return (inventoryData || []) as InventoryWithProduct[]
+  return ((inventoryData || []) as InventoryQueryRow[]).map((item) => ({
+    ...item,
+    product: Array.isArray(item.product) ? item.product[0] : item.product,
+  }))
 }
 
 export default async function InventoryPage() {

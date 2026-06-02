@@ -43,7 +43,8 @@ export async function getProducts(
 
   let query = supabase
     .from('product')
-    .select('product_id, product_name, description, photo_url, price', { count: 'exact' })
+    .select('product_id, product_name, description, photo_url, price, is_active', { count: 'exact' })
+    .eq('is_active', true)
 
   // Apply sorting
   switch (sort) {
@@ -84,8 +85,9 @@ export async function getProductById(productId: number): Promise<Product | null>
 
   const { data, error } = await supabase
     .from('product')
-    .select('product_id, product_name, description, photo_url, price')
+    .select('product_id, product_name, description, photo_url, price, is_active')
     .eq('product_id', productId)
+    .eq('is_active', true)
     .single()
 
   if (error) {
@@ -110,8 +112,9 @@ export async function searchProducts(
 
   const { data, error } = await supabase
     .from('product')
-    .select('product_id, product_name, description, photo_url, price')
+    .select('product_id, product_name, description, photo_url, price, is_active')
     .ilike('product_name', `%${searchTerm}%`)
+    .eq('is_active', true)
     .limit(limit)
 
   if (error) {
@@ -142,9 +145,10 @@ export async function getAllInventory() {
       quantity,
       reorder_level,
       last_update,
-      product:product_id (product_id, product_name, price)
+      product:product_id!inner (product_id, product_name, price, is_active)
       `
     )
+    .eq('product.is_active', true)
     .order('product_id', { ascending: true })
 
   if (error) {

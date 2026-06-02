@@ -21,9 +21,11 @@ async function getData() {
       product_name,
       description,
       photo_url,
-      price
+      price,
+      is_active
     `
     )
+    .eq("is_active", true)
     .order("product_name", { ascending: true })
 
   // Fetch all suppliers from the database

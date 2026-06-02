@@ -59,11 +59,25 @@ export async function createProduct(formData: FormData) {
   const productName = formData.get("product_name") as string
   const description = formData.get("description") as string
   const price = parseFloat(formData.get("price") as string)
+  const inventoryQuantity = Number.parseInt(formData.get("inventory_quantity") as string, 10)
+  const reorderLevelValue = formData.get("reorder_level") as string
+  const reorderLevel =
+    reorderLevelValue === "" || reorderLevelValue === null
+      ? null
+      : Number.parseInt(reorderLevelValue, 10)
   const image = formData.get("photo")
   const pastedPhotoUrl = formData.get("photo_url") as string
 
   if (!productName || Number.isNaN(price)) {
     return { error: "Product name and price are required" }
+  }
+
+  if (Number.isNaN(inventoryQuantity) || inventoryQuantity < 0) {
+    return { error: "Initial inventory amount is required" }
+  }
+
+  if (reorderLevel !== null && (Number.isNaN(reorderLevel) || reorderLevel < 0)) {
+    return { error: "Reorder level must be zero or greater" }
   }
 
   let photoUrl = pastedPhotoUrl || null
@@ -87,6 +101,7 @@ export async function createProduct(formData: FormData) {
       description: description || null,
       price: Math.round(price), // price is smallint in DB
       photo_url: photoUrl,
+      is_active: true,
     })
     .select()
     .single()
@@ -99,10 +114,32 @@ export async function createProduct(formData: FormData) {
     return { error: productError.message }
   }
 
+  const { data: inventory, error: inventoryError } = await supabase
+    .from("inventory")
+    .insert({
+      product_id: product.product_id,
+      quantity: inventoryQuantity,
+      reorder_level: reorderLevel,
+      last_update: new Date().toISOString().split("T")[0],
+    })
+    .select()
+    .single()
+
+  if (inventoryError) {
+    await supabase.from("product").delete().eq("product_id", product.product_id)
+
+    if (uploadedFilePath) {
+      await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove([uploadedFilePath])
+    }
+
+    return { error: `Product inventory could not be created: ${inventoryError.message}` }
+  }
+
   revalidatePath("/")
   revalidatePath("/admin")
+  revalidatePath("/admin/inventory")
 
-  return { success: true, product }
+  return { success: true, product, inventory }
 }
 
 /**
@@ -150,7 +187,7 @@ export async function deleteProduct(productId: number) {
 
   const { error } = await supabase
     .from("product")
-    .delete()
+    .update({ is_active: false })
     .eq("product_id", productId)
 
   if (error) {
@@ -159,6 +196,7 @@ export async function deleteProduct(productId: number) {
 
   revalidatePath("/")
   revalidatePath("/admin")
+  revalidatePath("/admin/inventory")
 
   return { success: true }
 }
@@ -189,6 +227,7 @@ export async function addInventory(
   }
 
   revalidatePath("/admin")
+  revalidatePath("/admin/inventory")
 
   return { success: true, inventory }
 }
@@ -219,6 +258,7 @@ export async function updateInventory(
   }
 
   revalidatePath("/admin")
+  revalidatePath("/admin/inventory")
 
   return { success: true, inventory }
 }

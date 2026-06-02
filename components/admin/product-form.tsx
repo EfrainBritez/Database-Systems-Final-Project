@@ -62,6 +62,31 @@ export function ProductForm() {
         </Field>
 
         <Field>
+          <FieldLabel htmlFor="inventory_quantity">Initial Inventory Amount *</FieldLabel>
+          <Input
+            id="inventory_quantity"
+            name="inventory_quantity"
+            type="number"
+            step="1"
+            min="0"
+            required
+            placeholder="0"
+          />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="reorder_level">Reorder Level</FieldLabel>
+          <Input
+            id="reorder_level"
+            name="reorder_level"
+            type="number"
+            step="1"
+            min="0"
+            placeholder="0"
+          />
+        </Field>
+
+        <Field>
           <FieldLabel htmlFor="photo">Product Image</FieldLabel>
           <Input
             id="photo"

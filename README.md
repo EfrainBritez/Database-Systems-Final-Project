@@ -149,6 +149,7 @@ Run the migration scripts in Supabase SQL Editor:
 3. `scripts/003_create_orders_schema.sql` - Create order tables
 4. `scripts/005_setup_auth.sql` - Add authentication
 5. `scripts/003_create_product_images_bucket.sql` - Create the Storage bucket and policies for product image uploads
+6. `scripts/006_add_product_soft_delete.sql` - Add product archiving support for safe deletes
 
 ## Authentication Setup
 

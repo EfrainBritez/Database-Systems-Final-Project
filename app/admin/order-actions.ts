@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { CustomerNew, OrderNew, PaymentNew } from '@/lib/types'
+import type { CustomerNew, OrderNew, OrderStatus, PaymentNew } from '@/lib/types'
 import { v4 as uuidv4 } from 'uuid'
 
 /**
@@ -204,7 +204,7 @@ export async function createPayment(paymentData: {
  */
 export async function updateOrderStatus(
   orderId: string,
-  status: string
+  status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
