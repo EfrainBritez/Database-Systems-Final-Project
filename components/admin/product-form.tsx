@@ -105,6 +105,30 @@ export function ProductForm() {
             placeholder="https://example.com/image.jpg"
           />
         </Field>
+
+        <Field>
+          <FieldLabel htmlFor="quantity">Initial Quantity</FieldLabel>
+          <Input
+            id="quantity"
+            name="quantity"
+            type="number"
+            step="1"
+            min="0"
+            placeholder="0"
+          />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="reorder_level">Reorder Level</FieldLabel>
+          <Input
+            id="reorder_level"
+            name="reorder_level"
+            type="number"
+            step="1"
+            min="0"
+            placeholder="0"
+          />
+        </Field>
       </FieldGroup>
 
       <Button type="submit" disabled={isPending}>

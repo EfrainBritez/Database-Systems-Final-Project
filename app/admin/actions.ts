@@ -185,6 +185,38 @@ export async function updateProduct(productId: number, formData: FormData) {
 export async function deleteProduct(productId: number) {
   const supabase = await createClient()
 
+  // Cascade-delete related rows to mimic ON DELETE CASCADE behavior
+  // Delete order items referencing this product (if any)
+  const { error: orderItemsError } = await supabase
+    .from("order_item")
+    .delete()
+    .eq("product_id", productId)
+
+  if (orderItemsError) {
+    return { error: orderItemsError.message }
+  }
+
+  // Delete product-supplier links
+  const { error: psError } = await supabase
+    .from("product_supplier")
+    .delete()
+    .eq("product_id", productId)
+
+  if (psError) {
+    return { error: psError.message }
+  }
+
+  // Delete inventory rows for this product
+  const { error: invError } = await supabase
+    .from("inventory")
+    .delete()
+    .eq("product_id", productId)
+
+  if (invError) {
+    return { error: invError.message }
+  }
+
+  // Finally delete the product itself
   const { error } = await supabase
     .from("product")
     .update({ is_active: false })
